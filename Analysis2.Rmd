@@ -1,0 +1,600 @@
+---
+title: "Untitled"
+author: "Akinniyi"
+date: "2022-12-04"
+output: word_document
+---
+
+## Introduction
+
+This analysis is conducted on Sustainable Development Goals (SDGs) data obtained from World Bank database [https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)](https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)){.uri}. We selected the data for 10 countries (5 African and 5 South American Countries) with 3 **indicators**: `Access to clean fuels and technologies for cooking`, `Access to electricity` and `Access to electricity, rural` with a view to see how these indicators are connected and how the two continents perform against each other.
+
+We will load the required packages `tidyvers`, `lubridate`, `readxl`, `moments`, `psych`, `ggplot2`, `ggpubr`, `Hmisc`, `tseries`, `forecast` after installing them using the following code chunk:
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(readxl)
+library(moments)
+library(psych)
+library(ggplot2)
+library(ggpubr)
+library(Hmisc)
+library(tseries)
+library(forecast)
+```
+
+## About our Data
+
+After scrapping the data from the data bank of the World Bank, I did some data cleaning in Excel before importing into R.
+
+\* I replaced the missing values with the average value for the rows involved.
+
+\* Since we're looking to see how the two continents perform against each other, I created a `Continent` column and filled the name of the continent each of the countries in our data set belonged to.
+
+\* I created 2 columns `Continent_Code` and `Series_Code` to replace the `Continent` and `Series Name` columns to make it easier to read the data.
+
+\* Under `Continent_Code` column, I represented **Africa** with **AFR** and **South America** with **SAR**
+
+\* Under the `Series_Code` column, I represented **Access to clean fuels and technologies for cooking (% of population)** with ***CF***, **Access to electricity (% of population)** with ***E*** and **Access to electricity, rural (% of rural population)** with ***ER***
+
+\* I deleted the `Country Name`, `Series Name`, `Series Code`, `Continent` columns.
+
+\* I renamed the year columns from `2011 [YR2011]` to `2011` for all ten years accordingly.
+
+\* I then imported both the **raw data** and the **cleaned data** using the code chunk below
+
+```{r}
+SDG_Raw_Data <- read_xlsx('P_Data_Extract_From_Sustainable_Development_Goals_(SDGs).xlsx')
+SDG_Data <- read_xlsx('SDG.xlsx')
+```
+
+We take glimpse of our cleaned data using the code chunk below
+
+```{r}
+str(SDG_Data)
+head(SDG_Data)
+tail(SDG_Data)
+```
+
+Since our analysis is focused on seeing how the SDGs of Africa does against South America, the code chunk below extracts the data for Africa and splits that further into the data for the three SDGs indicators so as to start our analysis.
+
+```{r}
+SDG_Africa <-SDG_Data[SDG_Data$Continent_Code == 'AFR', ]
+SDG_Africa_CF <-SDG_Africa[SDG_Africa$Series_Code == 'CF', ]
+SDG_Africa_CF <- SDG_Africa_CF[,-1:-3]
+SDG_Africa_E <-SDG_Africa[SDG_Africa$Series_Code == 'E', ]
+SDG_Africa_E <- SDG_Africa_E[,-1:-3]
+SDG_Africa_ER <-SDG_Africa[SDG_Africa$Series_Code == 'ER', ]
+SDG_Africa_ER <- SDG_Africa_ER[,-1:-3]
+```
+
+The next code chunk does the same for the South America SDGs Data
+
+```{r}
+SDG_SAmerica <-SDG_Data[SDG_Data$Continent_Code == 'SAR', ]
+SDG_SAmerica_CF <-SDG_SAmerica[SDG_SAmerica$Series_Code == 'CF', ]
+SDG_SAmerica_CF <- SDG_SAmerica_CF[,-1:-3]
+SDG_SAmerica_E <-SDG_SAmerica[SDG_SAmerica$Series_Code == 'E', ]
+SDG_SAmerica_E <- SDG_SAmerica_E[,-1:-3]
+SDG_SAmerica_ER <-SDG_SAmerica[SDG_SAmerica$Series_Code == 'ER', ]
+SDG_SAmerica_ER <- SDG_SAmerica_ER[,-1:-3]
+```
+
+## Descriptive Analysis
+
+### Mean
+
+##### Africa
+
+The code chunk below calculates the **Mean** for each of the **indicators**.
+
+```{r}
+SDG_Africa_CF_Mean <-colMeans(SDG_Africa_CF)
+SDG_Africa_CF_Mean
+plot(SDG_Africa_CF_Mean)
+
+SDG_Africa_E_Mean <-colMeans(SDG_Africa_E)
+SDG_Africa_E_Mean
+plot(SDG_Africa_E_Mean)
+
+SDG_Africa_ER_Mean <-colMeans(SDG_Africa_ER)
+SDG_Africa_ER_Mean
+plot(SDG_Africa_ER_Mean)
+```
+
+##### South America
+
+The following code chunk calculates the **Mean** for each **indicators**.
+
+```{r}
+SDG_SAmerica_CF_Mean <-colMeans(SDG_SAmerica_CF)
+SDG_SAmerica_CF_Mean
+plot(SDG_SAmerica_CF_Mean)
+
+SDG_SAmerica_E_Mean <-colMeans(SDG_SAmerica_E)
+SDG_SAmerica_E_Mean
+plot(SDG_SAmerica_E_Mean)
+
+SDG_SAmerica_ER_Mean <-colMeans(SDG_SAmerica_ER)
+SDG_SAmerica_ER_Mean
+plot(SDG_SAmerica_ER_Mean)
+```
+
+### Median
+
+##### Africa
+
+The code chunk below calculates the **Median** for each of the **indicators**.
+
+```{r}
+SDG_Africa_CF_Median <-median(SDG_Africa_CF_Mean)
+SDG_Africa_CF_Median
+
+SDG_Africa_E_Median <-median(SDG_Africa_E_Mean)
+SDG_Africa_E_Median
+
+SDG_Africa_ER_Median <-median(SDG_Africa_ER_Mean)
+SDG_Africa_ER_Median
+```
+
+##### South America
+
+The following code chunk calculates the **Median** for each **indicators**.
+
+```{r}
+SDG_SAmerica_CF_Median <-median(SDG_SAmerica_CF_Mean)
+SDG_SAmerica_CF_Median
+
+SDG_SAmerica_E_Median <-median(SDG_SAmerica_E_Mean)
+SDG_SAmerica_E_Median
+
+SDG_SAmerica_ER_Median <-median(SDG_SAmerica_ER_Mean)
+SDG_SAmerica_ER_Median
+```
+
+### Standard Deviation
+
+##### Africa
+
+The code chunk below calculates the **Standard Deviation** for each of the **indicators**.
+
+```{r}
+SDG_Africa_CF_SD <- sd(SDG_Africa_CF_Mean)
+SDG_Africa_CF_SD
+
+SDG_Africa_E_SD <- sd(SDG_Africa_E_Mean)
+SDG_Africa_E_SD
+
+SDG_Africa_ER_SD <- sd(SDG_Africa_ER_Mean)
+SDG_Africa_ER_SD
+```
+
+##### South America
+
+The following code chunk calculates the **Standard Deviation** for each **indicators**.
+
+```{r}
+SDG_SAmerica_CF_SD <- sd(SDG_SAmerica_CF_Mean)
+SDG_SAmerica_CF_SD
+SDG_SAmerica_E_SD <- sd(SDG_SAmerica_E_Mean)
+SDG_SAmerica_E_SD
+SDG_SAmerica_ER_SD <- sd(SDG_SAmerica_ER_Mean)
+SDG_SAmerica_ER_SD
+```
+
+### Skewness
+
+##### Africa
+
+The code chunk below calculates the **Skewness** for each of the **indicators**.
+
+```{r}
+skewness(SDG_Africa_CF_Mean)
+plot(skewness(SDG_Africa_CF))
+```
+
+```{r}
+skewness(SDG_Africa_E_Mean)
+plot(skewness(SDG_Africa_E))
+```
+
+```{r}
+skewness(SDG_Africa_ER_Mean)
+plot(skewness(SDG_Africa_ER))
+```
+
+##### South America
+
+The following code chunk calculates the **Skewness** for each **indicators**.
+
+```{r}
+skewness(SDG_SAmerica_CF_Mean)
+plot(skewness(SDG_SAmerica_CF))
+```
+
+```{r}
+skewness(SDG_SAmerica_E_Mean)
+plot(skewness(SDG_SAmerica_E))
+```
+
+```{r}
+skewness(SDG_SAmerica_ER_Mean)
+plot(skewness(SDG_SAmerica_ER))
+```
+
+### Kurtosis
+
+##### Africa
+
+The code chunk below calculates the **Kurtosis** for each of the **indicators**.
+
+```{r}
+kurtosis(SDG_Africa_CF_Mean)
+plot(kurtosis(SDG_Africa_CF))
+```
+
+```{r}
+kurtosis(SDG_Africa_E_Mean)
+plot(kurtosis(SDG_Africa_E))
+```
+
+```{r}
+kurtosis(SDG_Africa_ER_Mean)
+plot(kurtosis(SDG_Africa_ER))
+```
+
+##### South America
+
+The following code chunk calculates the **Kurtosis** for each **indicators**.
+
+```{r}
+kurtosis(SDG_SAmerica_CF_Mean)
+plot(kurtosis(SDG_SAmerica_CF))
+```
+
+```{r}
+kurtosis(SDG_SAmerica_E_Mean)
+plot(kurtosis(SDG_SAmerica_E))
+```
+
+```{r}
+kurtosis(SDG_SAmerica_ER_Mean)
+plot(kurtosis(SDG_SAmerica_ER))
+```
+
+## Correlation Analysis
+
+### Africa
+
+We prepare our data for the analysis and run the `Shapiro Wilk` test for normality
+
+```{r}
+SDG_Africa_Mean<- t(rbind(SDG_Africa_CF_Mean, SDG_Africa_E_Mean, SDG_Africa_ER_Mean))
+SDG_Africa_Mean<- data.frame(SDG_Africa_Mean)
+SDG_Africa_Mean<- data.frame(SDG_Africa_Mean$SDG_Africa_CF_Mean, SDG_Africa_Mean$SDG_Africa_E_Mean, SDG_Africa_Mean$SDG_Africa_ER_Mean)
+
+colnames(SDG_Africa_Mean)[1] = "CF_Mean"
+colnames(SDG_Africa_Mean)[2] = "E_Mean"
+colnames(SDG_Africa_Mean)[3] = "ER_Mean"
+
+plot(SDG_Africa_Mean)
+```
+
+```{r}
+shapiro.test(SDG_Africa_Mean$CF_Mean)
+```
+
+```{r}
+shapiro.test(SDG_Africa_Mean$E_Mean)
+```
+
+```{r}
+shapiro.test(SDG_Africa_Mean$ER_Mean)
+```
+
+After confirming that the `p-value` of the data is `>0.05` which means it is not different from a normal distribution, we run our correlation test for the 3 `indicators`
+
+```{r}
+corAFR <- rcorr(as.matrix(SDG_Africa_Mean))
+corAFR
+```
+
+```{r}
+cor(SDG_Africa_Mean)
+pairs.panels(SDG_Africa_Mean)
+```
+
+### South America
+
+We prepare our data for the analysis and run the `Shapiro Wilk` test for normality
+
+```{r}
+SDG_SAmerica_Mean<- t(rbind(SDG_SAmerica_CF_Mean, SDG_SAmerica_E_Mean, SDG_SAmerica_ER_Mean))
+SDG_SAmerica_Mean <- data.frame(SDG_SAmerica_Mean)
+SDG_SAmerica_Mean<- data.frame(SDG_SAmerica_Mean$SDG_SAmerica_CF_Mean, SDG_SAmerica_Mean$SDG_SAmerica_E_Mean, SDG_SAmerica_Mean$SDG_SAmerica_ER_Mean)
+
+colnames(SDG_SAmerica_Mean)[1] = "CF_Mean"
+colnames(SDG_SAmerica_Mean)[2] = "E_Mean"
+colnames(SDG_SAmerica_Mean)[3] = "ER_Mean"
+
+plot(SDG_SAmerica_Mean)
+```
+
+```{r}
+shapiro.test(SDG_SAmerica_Mean$CF_Mean)
+```
+
+```{r}
+shapiro.test(SDG_SAmerica_Mean$E_Mean)
+```
+
+```{r}
+shapiro.test(SDG_SAmerica_Mean$ER_Mean)
+```
+
+After confirming that the `p-value` of the data is `>0.05` which means it is not different from a normal distribution, we run our correlation test for the 3 `indicators`
+
+```{r}
+corS_A <- rcorr(as.matrix(SDG_SAmerica_Mean))
+corS_A
+```
+
+```{r}
+cor(SDG_SAmerica_Mean)
+pairs.panels(SDG_SAmerica_Mean)
+```
+
+## Regression Analysis
+
+### Africa
+
+```{r}
+multiple_regression_AFR <- lm(CF_Mean ~ E_Mean + ER_Mean, data = SDG_Africa_Mean)
+summary(multiple_regression_AFR)
+```
+
+### South America
+
+```{r}
+multiple_regression_SAR <- lm(CF_Mean ~ E_Mean + ER_Mean, data = SDG_SAmerica_Mean)
+summary(multiple_regression_SAR)
+```
+
+## Time Series
+
+For the time series analysis, we will be doing `Time Series` and `forecast` for each `indicator` for each `Continent`.
+
+### Africa
+
+##### Access to clean fuels and technologies for cooking (CF)
+
+We get the data ready by converting it to a `time Series (ts)` data and plot our data before analysis.
+
+```{r}
+SDG_Africa_Mean_YCF <- SDG_Africa_Mean[,-2:-3]
+SDG_Africa_Mean_YCFts <- ts(SDG_Africa_Mean_YCF, start = 2011, end = 2020, frequency = 1)
+plot(SDG_Africa_Mean_YCFts)
+```
+
+```{r}
+acf(SDG_Africa_Mean_YCFts)
+```
+
+```{r}
+pacf(SDG_Africa_Mean_YCFts)
+```
+
+```{r}
+adf.test(SDG_Africa_Mean_YCFts)
+```
+
+For the `forecast`
+
+```{r}
+myforecast_AYCFts <- forecast(SDG_Africa_Mean_YCFts, level=c(95), h=10*1)
+plot(myforecast_AYCFts)
+```
+
+##### Access to electricity (E)
+
+We get the data ready by converting it to a `time Series (ts)` data and plot our data before analysis.
+
+```{r}
+SDG_Africa_Mean_YE <- SDG_Africa_Mean[, -c(1,3)]
+SDG_Africa_Mean_YEts <- ts(SDG_Africa_Mean_YE, start = 2011, end = 2020, frequency = 1)
+plot(SDG_Africa_Mean_YEts)
+```
+
+```{r}
+acf(SDG_Africa_Mean_YEts)
+```
+
+```{r}
+pacf(SDG_Africa_Mean_YEts)
+```
+
+```{r}
+adf.test(SDG_Africa_Mean_YEts)
+```
+
+For the `forecast`
+
+```{r}
+myforecast_AYEts <- forecast(SDG_Africa_Mean_YEts, level=c(95), h=10*1)
+plot(myforecast_AYEts)
+```
+
+##### Access to electricity, rural (ER)
+
+We get the data ready by converting it to a `time Series (ts)` data and plot our data before analysis.
+
+```{r}
+SDG_Africa_Mean_YER <- SDG_Africa_Mean[, -c(1,2)]
+SDG_Africa_Mean_YERts <- ts(SDG_Africa_Mean_YER, start = 2011, end = 2020, frequency = 1)
+plot(SDG_Africa_Mean_YERts)
+```
+
+```{r}
+acf(SDG_Africa_Mean_YERts)
+```
+
+```{r}
+pacf(SDG_Africa_Mean_YERts)
+```
+
+```{r}
+adf.test(SDG_Africa_Mean_YERts)
+```
+
+For the `forecast`
+
+```{r}
+myforecast_AYERts <- forecast(SDG_Africa_Mean_YERts, level=c(95), h=10*1)
+plot(myforecast_AYERts)
+```
+
+### South America
+
+##### Access to clean fuels and technologies for cooking (CF)
+
+We get the data ready by converting it to a `time Series (ts)` data and plot our data before analysis.
+
+```{r}
+SDG_SAmerica_Mean_YCF <- SDG_SAmerica_Mean[,-2:-3]
+SDG_SAmerica_Mean_YCFts <- ts(SDG_SAmerica_Mean_YCF, start = 2011, end = 2020, frequency = 1)
+plot(SDG_SAmerica_Mean_YCFts)
+```
+
+```{r}
+acf(SDG_SAmerica_Mean_YCFts)
+```
+
+```{r}
+pacf(SDG_SAmerica_Mean_YCFts)
+```
+
+```{r}
+adf.test(SDG_SAmerica_Mean_YCFts)
+```
+
+For the `forecast`
+
+```{r}
+myforecast_YCFts <- forecast(SDG_SAmerica_Mean_YCFts, level=c(95), h=10*1)
+plot(myforecast_YCFts)
+```
+
+##### Access to electricity (E)
+
+We get the data ready by converting it to a `time Series (ts)` data and plot our data before analysis.
+
+```{r}
+SDG_SAmerica_Mean_YE <- SDG_SAmerica_Mean[, -c(1,3)]
+SDG_SAmerica_Mean_YEts <- ts(SDG_SAmerica_Mean_YE, start = 2011, end = 2020, frequency = 1)
+plot(SDG_SAmerica_Mean_YEts)
+```
+
+```{r}
+acf(SDG_SAmerica_Mean_YEts)
+```
+
+```{r}
+pacf(SDG_SAmerica_Mean_YEts)
+```
+
+```{r}
+adf.test(SDG_SAmerica_Mean_YEts)
+```
+
+For the `forecast`
+
+Because the `p-value` is `<0.05`, we need to use the `Arima Model` for our forecast.
+
+```{r}
+smodel_YEts <- auto.arima(SDG_Africa_Mean_YEts , ic="aic", trace = TRUE)
+```
+
+```{r}
+acf(ts(smodel_YEts$residuals))
+```
+
+```{r}
+pacf(ts(smodel_YEts$residuals))
+```
+
+```{r}
+myforecast_YEts <- forecast(smodel_YEts, level=c(95), h=10*1)
+plot(myforecast_YEts)
+```
+
+##### Access to electricity, rural (ER)
+
+We get the data ready by converting it to a `time Series (ts)` data and plot our data before analysis.
+
+```{r}
+SDG_SAmerica_Mean_YER <- SDG_SAmerica_Mean[, -c(1,2)]
+SDG_SAmerica_Mean_YERts <- ts(SDG_SAmerica_Mean_YER, start = 2011, end = 2020, frequency = 1)
+plot(SDG_SAmerica_Mean_YERts)
+```
+
+```{r}
+acf(SDG_SAmerica_Mean_YERts)
+```
+
+```{r}
+pacf(SDG_SAmerica_Mean_YERts)
+```
+
+```{r}
+adf.test(SDG_SAmerica_Mean_YERts)
+```
+
+For the `forecast`
+
+Because the `p-value` is `<0.05`, we need to use the `Arima Model` for our forecast.
+
+```{r}
+smodel_YERts <- auto.arima(SDG_SAmerica_Mean_YERts , ic="aic", trace = TRUE)
+```
+
+```{r}
+acf(ts(smodel_YERts$residuals))
+```
+
+```{r}
+pacf(ts(smodel_YERts$residuals))
+```
+
+```{r}
+myforecast_YERts <- forecast(smodel_YERts, level=c(95), h=10*1)
+plot(myforecast_YERts)
+```
+
+### Comparison
+
+I plotted the average of the `indicators` in each continent against each other to see how well each continent performs as opposed to the other.
+
+##### Access to clean fuels and technologies for cooking (CF)
+
+```{r}
+ts.plot(SDG_Africa_Mean_YCFts, SDG_SAmerica_Mean_YCFts, col=c("blue", "red"))
+```
+
+**NOTE:** The `blue` plot is for *Africa* while the `red` plot is for *South America*
+
+##### Access to electricity (E)
+
+```{r}
+ts.plot(SDG_Africa_Mean_YEts, SDG_SAmerica_Mean_YEts, col=c("blue", "red"))
+```
+
+**NOTE:** The `blue` plot is for *Africa* while the `red` plot is for *South America*
+
+##### Access to electricity, rural (ER)
+
+```{r}
+ts.plot(SDG_Africa_Mean_YERts, SDG_SAmerica_Mean_YERts, col=c("blue", "red"))
+```
+
+**NOTE:** The `blue` plot is for *Africa* while the `red` plot is for *South America*
